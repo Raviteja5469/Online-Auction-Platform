@@ -20,7 +20,7 @@ const App = () => {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Landingpage />} />
-        <Route path="/PostAuction" element={<PostingAuction />} />
+        <Route path="/post-auction" element={<PostingAuction />} />
         {/* <Route path="/Authentication" element={<Authentication />} /> */}
         {/* <Route path="/signin" element={<Authentication />} />
         <Route path="/signup" element={<SignUp />} /> */}

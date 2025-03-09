@@ -1,108 +1,119 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
+import axios from "axios";
 
-const LoginPopUp = ({ setShowLogin }) => {
-  const [currentState, setCurrentState] = useState("LOGIN");
+const LoginPopup = ({ isOpen, onClose }) => {
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState(""); // For sign-up
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const toggleForm = () => {
+    setIsSignUp(!isSignUp);
+    setErrorMessage(""); // Clear error message on toggle
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setErrorMessage(""); // Clear any previous error
+
+    const payload = isSignUp
+      ? { name, email, password }
+      : { email, password };
+
+    const endpoint = isSignUp
+      ? "https://your-backend.com/api/signup"
+      : "https://your-backend.com/api/signin";
+
+    try {
+      const response = await axios.post(endpoint, payload);
+      console.log(response.data); // Handle the response from your backend (e.g., set tokens, navigate user, etc.)
+      onClose(); // Close the popup after successful auth
+    } catch (error) {
+      setErrorMessage(error.response?.data?.message || "Something went wrong!");
+    }
+  };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
-      <div className="relative w-full max-w-md mx-4 bg-white/10 backdrop-blur-md rounded-xl shadow-2xl border border-white/20 overflow-hidden">
-        <form className="p-8 space-y-6">
-          {/* Header */}
-          <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-bold text-white">{currentState}</h2>
-            <button 
-              onClick={() => setShowLogin(false)}
-              className="text-white/70 hover:text-white transition-colors"
-              type="button"
-            >
-              <svg 
-                className="w-6 h-6" 
-                fill="none" 
-                stroke="currentColor" 
-                viewBox="0 0 24 24"
-              >
-                <path 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
-                  strokeWidth={2} 
-                  d="M6 18L18 6M6 6l12 12" 
-                />
-              </svg>
-            </button>
-          </div>
-
-          {/* Input Fields */}
-          <div className="space-y-4">
-            {currentState === "SIGNUP" && (
-              <input
-                type="text"
-                placeholder="Your Name"
-                required
-                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-white/50 focus:ring-1 focus:ring-white/50 backdrop-blur-sm"
-              />
-            )}
-            <input
-              type="email"
-              placeholder="Your Email"
-              required
-              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-white/50 focus:ring-1 focus:ring-white/50 backdrop-blur-sm"
-            />
-            <input
-              type="password"
-              placeholder="Password"
-              required
-              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-white/50 focus:ring-1 focus:ring-white/50 backdrop-blur-sm"
-            />
-          </div>
-
-          {/* Submit Button */}
-          <button 
-            type="submit"
-            className="w-full py-3 px-4 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-lg transition-colors duration-200 ease-in-out shadow-lg hover:shadow-orange-500/25"
+    isOpen && (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+        <div className="bg-white p-8 rounded-lg shadow-lg w-96 relative">
+          <button
+            className="absolute top-4 right-4 text-xl font-bold"
+            onClick={onClose}
           >
-            {currentState === "SIGNUP" ? "Create Account" : "Login"}
+            X
           </button>
-
-          {/* Terms and Conditions */}
-          <div className="flex items-start space-x-2">
-            <input 
-              type="checkbox" 
-              required 
-              className="mt-1 rounded border-white/20 bg-white/10 text-orange-500 focus:ring-orange-500"
-            />
-            <p className="text-sm text-white/70">
-              By continuing, I agree to the terms and conditions & privacy policy.
-            </p>
-          </div>
-
-          {/* Toggle Login/Signup */}
-          <div className="text-center">
-            {currentState === "LOGIN" ? (
-              <p className="text-white/70">
-                Create a new account?{' '}
-                <span 
-                  onClick={() => setCurrentState("SIGNUP")}
-                  className="text-orange-400 hover:text-orange-300 cursor-pointer underline transition-colors"
-                >
-                  Click Here
-                </span>
-              </p>
-            ) : (
-              <p className="text-white/70">
-                Already have an account?{' '}
-                <span 
-                  onClick={() => setCurrentState("LOGIN")}
-                  className="text-orange-400 hover:text-orange-300 cursor-pointer underline transition-colors"
-                >
-                  Login Here
-                </span>
-              </p>
+          <h2 className="text-2xl mb-6 text-center">
+            {isSignUp ? "Sign Up" : "Sign In"}
+          </h2>
+          <form onSubmit={handleSubmit}>
+            {isSignUp && (
+              <div className="mb-4">
+                <label htmlFor="name" className="block text-sm font-medium mb-1">
+                  Name
+                </label>
+                <input
+                  type="text"
+                  id="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                  required
+                />
+              </div>
             )}
-          </div>
-        </form>
+            <div className="mb-4">
+              <label htmlFor="email" className="block text-sm font-medium mb-1">
+                Email
+              </label>
+              <input
+                type="email"
+                id="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded-md"
+                required
+              />
+            </div>
+            <div className="mb-4">
+              <label htmlFor="password" className="block text-sm font-medium mb-1">
+                Password
+              </label>
+              <input
+                type="password"
+                id="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded-md"
+                required
+              />
+            </div>
+            {errorMessage && (
+              <div className="text-red-500 text-sm mb-4">{errorMessage}</div>
+            )}
+            <button
+              type="submit"
+              className="w-full py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+            >
+              {isSignUp ? "Sign Up" : "Sign In"}
+            </button>
+          </form>
+          <p className="mt-4 text-sm text-center">
+            {isSignUp
+              ? "Already have an account? "
+              : "Don't have an account? "}
+            <span
+              onClick={toggleForm}
+              className="text-blue-500 cursor-pointer hover:underline"
+            >
+              {isSignUp ? "Sign In" : "Sign Up"}
+            </span>
+          </p>
+        </div>
       </div>
-    </div>
+    )
   );
 };
 
-export default LoginPopUp;
+export default LoginPopup;
