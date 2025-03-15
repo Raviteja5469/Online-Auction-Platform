@@ -40,6 +40,7 @@ const App = () => {
           <Route path="/PlaceBiding" element={<PlaceBidPage />} />
           <Route path="/Dashboard" element={<DashboardPage />} />
           <Route path="*" element={<NotFound />} />
+          
         </Routes>
       </Layout>
     </BrowserRouter>
