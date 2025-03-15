@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 
+
 const PostAuction = () => {
   const [formData, setFormData] = useState({
     itemName: '',

@@ -6,9 +6,11 @@ import Footer from '../components/Footer'
 const DashboardPage = () => {
   return (
     <div>
+
       <Navbar />
       <Dashboard />
-      <Footer />    
+      <Footer /> 
+         
     </div>
   )
 }
