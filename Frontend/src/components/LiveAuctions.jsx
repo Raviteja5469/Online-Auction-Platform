@@ -8,7 +8,7 @@ const LiveAuctions = () => {
       category: "Watches",
       currentBid: 15000,
       timeLeft: "2d 5h",
-      imageUrl: "https://example.com/watch.jpg", // Replace with actual image URL
+      imageUrl: "https://images.pexels.com/photos/190819/pexels-photo-190819.jpeg?auto=compress&cs=tinysrgb&w=600", // Replace with actual image URL
       bids: 23,
       watchers: 156,
       condition: "Excellent"
@@ -133,7 +133,8 @@ const LiveAuctions = () => {
 
                 {/* Action Buttons */}
                 <div className="flex space-x-3">
-                  <button className="flex-1 bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors duration-300">
+                  <button   onClick={() => window.location.href = '/PlaceBiding'}
+                  className="flex-1 bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors duration-300">
                     Place Bid
                   </button>
                   <button className="flex-none px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors duration-300">
@@ -159,7 +160,10 @@ const LiveAuctions = () => {
 
         {/* View More Button */}
         <div className="text-center mt-12">
-          <button className="inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 md:text-lg md:px-10">
+          <button
+            onClick={() => window.location.href = '/on-going-Auctions'}
+            className="inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 md:text-lg md:px-10"
+          >
             View All Auctions
             <svg
               className="ml-2 h-5 w-5"
