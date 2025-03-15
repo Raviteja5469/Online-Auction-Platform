@@ -68,7 +68,7 @@ const Dashboard = () => {
   const [timeRange, setTimeRange] = useState('weekly');
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-30       ">
+    <div className="min-h-screen bg-gray-50 pt-30 pb-16">
       <div className="max-w-7xl mx-auto">
         {/* User Profile Section */}
         <div className="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
