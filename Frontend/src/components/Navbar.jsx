@@ -1,15 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import './import.css';
-import { motion, AnimatePresence } from 'framer-motion'; // For smooth animations
-import AuthModal from './AuthModal'; // Import the AuthModal component (separate it for better modularity)
+import { motion, AnimatePresence } from 'framer-motion';
+import AuthModal from './AuthModal';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // Handle navbar background change on scroll
+  // Check for token on mount and handle scroll
   useEffect(() => {
+    const token = localStorage.getItem('token');
+    setIsLoggedIn(!!token);
+
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
     };
@@ -18,10 +22,17 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Function to handle logout
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    setIsLoggedIn(false);
+    window.location.href = '/'; // Redirect to home after logout
+  };
+
   const navLinks = [
     { name: 'Home', href: '/' },
     { name: 'Auctions', href: '/on-going-Auctions' },
-    { name: 'Dashboard', href: '/dashboard' },
+    // { name: 'Dashboard', href: '/dashboard' },
     { name: 'Post Auction', href: '/post-auction' },
   ];
 
@@ -52,7 +63,7 @@ const Navbar = () => {
                 <a
                   key={link.name}
                   href={link.href}
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors duration-300 ${
+                  className={`px-3 py-2 rounded-md text-[20px] font-medium transition-colors duration-300 ${
                     isScrolled
                       ? 'text-gray-700 hover:text-indigo-600'
                       : 'text-white hover:text-indigo-200'
@@ -62,18 +73,45 @@ const Navbar = () => {
                 </a>
               ))}
 
-              {/* Auth Buttons */}
+              {/* Auth/Dashboard Section */}
               <div className="flex items-center space-x-4">
-                <button
-                  onClick={() => setShowAuthModal(true)}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-all cursor-pointer duration-300 ${
-                    isScrolled
-                      ? 'bg-indigo-600 text-white hover:bg-indigo-700'
-                      : 'bg-white text-indigo-600 hover:bg-indigo-50'
-                  }`}
-                >
-                  LOGIN
-                </button>
+                {isLoggedIn ? (
+                  <div className="flex items-center space-x-2">
+                    <a
+                      href="/dashboard"
+                      className={`px-4 py-2 flex rounded-md text-[18px] font-medium transition-all duration-300 ${
+                        isScrolled
+                          ? 'bg-indigo-600 text-white hover:bg-indigo-700'
+                          : 'bg-white text-indigo-600 hover:bg-indigo-50'
+                      }`}
+                    > Dashboard
+                    </a>
+                    <span className={`${isScrolled ? 'text-indigo-600' : 'text-white'}`}>
+                      
+                    </span>
+                    <button
+                      onClick={handleLogout}
+                      className={`px-4 py-2 rounded-md text-m font-medium transition-all duration-300 ${
+                        isScrolled
+                          ? 'text-indigo-600 hover:text-indigo-800'
+                          : 'text-white hover:text-indigo-200'
+                      }`}
+                    >
+                      Logout
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setShowAuthModal(true)}
+                    className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-300 ${
+                      isScrolled
+                        ? 'bg-indigo-600 text-white hover:bg-indigo-700'
+                        : 'bg-white text-indigo-600 hover:bg-indigo-50'
+                    }`}
+                  >
+                    LOGIN
+                  </button>
+                )}
               </div>
             </div>
 
@@ -113,16 +151,33 @@ const Navbar = () => {
                 {link.name}
               </a>
             ))}
-            <div className="mt-4 px-3">
-              <button
-                onClick={() => {
-                  setShowAuthModal(true);
-                  setIsOpen(false);
-                }}
-                className="w-full px-4 py-2 rounded-md text-base font-medium bg-indigo-600 text-white hover:bg-indigo-700"
-              >
-                LOGIN
-              </button>
+            <div className="mt-4 px-3 space-y-2">
+              {isLoggedIn ? (
+                <>
+                  <a
+                    href="/dashboard"
+                    className="block w-full px-4 py-2 rounded-md text-base font-medium bg-indigo-600 text-white hover:bg-indigo-700 text-center"
+                  >
+                    Dashboard
+                  </a>
+                  <button
+                    onClick={handleLogout}
+                    className="block w-full px-4 py-2 rounded-md text-base font-medium text-indigo-600 hover:text-indigo-800 text-center"
+                  >
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => {
+                    setShowAuthModal(true);
+                    setIsOpen(false);
+                  }}
+                  className="block w-full px-4 py-2 rounded-md text-base font-medium bg-indigo-600 text-white hover:bg-indigo-700"
+                >
+                  LOGIN
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -130,7 +185,10 @@ const Navbar = () => {
 
       {/* Auth Modal */}
       {showAuthModal && (
-        <AuthModal onClose={() => setShowAuthModal(false)} />
+        <AuthModal onClose={() => {
+          setShowAuthModal(false);
+          setIsLoggedIn(!!localStorage.getItem('token')); // Update login status after auth
+        }} />
       )}
     </>
   );

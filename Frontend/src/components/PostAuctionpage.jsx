@@ -11,22 +11,10 @@ const PostAuction = () => {
     reservePrice: '',
     buyNowPrice: '',
     incrementAmount: '',
-    startTime: '',
     endTime: '',
-    condition: 'new',
     brand: '',
-    dimensions: {
-      length: '',
-      width: '',
-      height: '',
-      weight: ''
-    },
     location: '',
-    shippingOptions: [],
-    tags: [],
     images: [],
-    certificates: [],
-    termsAccepted: false
   });
 
   const [currentTag, setCurrentTag] = useState('');
