@@ -20,7 +20,7 @@ const Navbar = () => {
 
   const navLinks = [
     { name: 'Home', href: '/' },
-    { name: 'Auctions', href: '/live-auctions' },
+    { name: 'Auctions', href: '/on-going-Auctions' },
     { name: 'Dashboard', href: '/dashboard' },
     { name: 'Post Auction', href: '/post-auction' },
   ];
@@ -29,7 +29,7 @@ const Navbar = () => {
     <>
       <nav
         className={`fixed w-full z-40 transition-all duration-300 ${
-          isScrolled ? 'bg-gray-800 shadow-lg' : 'bg-transparent'
+          isScrolled ? 'bg-white shadow-lg' : 'bg-gradient-to-r from-indigo-600 to-purple-600'
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -72,7 +72,7 @@ const Navbar = () => {
                       : 'bg-white text-indigo-600 hover:bg-indigo-50'
                   }`}
                 >
-                  Sign In
+                  LOGIN
                 </button>
               </div>
             </div>
@@ -121,7 +121,7 @@ const Navbar = () => {
                 }}
                 className="w-full px-4 py-2 rounded-md text-base font-medium bg-indigo-600 text-white hover:bg-indigo-700"
               >
-                Sign In
+                LOGIN
               </button>
             </div>
           </div>
