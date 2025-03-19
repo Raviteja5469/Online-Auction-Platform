@@ -7,6 +7,7 @@ const dotenv = require('dotenv');
 const cors = require('cors');
 const multer = require('multer');
 const path = require('path');
+const colors = require('colors')
 
 // Initialize dotenv
 dotenv.config();
@@ -24,7 +25,7 @@ mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
-.then(() => console.log('MongoDB connected'))
+.then(() => console.log(colors.green('MongoDB connected')))
 .catch(err => console.log('MongoDB connection error:', err));
 
 /* ------------------------ 🔹 USER AUTHENTICATION ------------------------ */
@@ -56,52 +57,112 @@ const verifyToken = async (req, res, next) => {
   }
 };
 
-// Register route
-app.post('/api/register', async (req, res) => {
+app.post('/signup', async (req, res) => {
   const { name, email, password } = req.body;
 
+  // Validation
   if (!name || !email || !password) {
     return res.status(400).json({ message: 'All fields are required' });
   }
 
+  if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+    return res.status(400).json({ message: 'Invalid email format' });
+  }
+
+  if (password.length < 6) {
+    return res.status(400).json({ message: 'Password must be at least 6 characters' });
+  }
+
   try {
+    // Check for existing user
     const existingUser = await User.findOne({ email });
-    if (existingUser) return res.status(400).json({ message: 'User already exists' });
+    if (existingUser) {
+      return res.status(400).json({ message: 'Email already registered' });
+    }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 12);
 
-    const newUser = new User({ name, email, password: hashedPassword });
+    // Create new user
+    const newUser = new User({
+      name: name.trim(),
+      email: email.toLowerCase(),
+      password: hashedPassword
+    });
+    
     await newUser.save();
 
-    const token = jwt.sign({ userId: newUser._id, name: newUser.name }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    // Generate JWT token
+    const token = jwt.sign(
+      { 
+        userId: newUser._id, 
+        name: newUser.name,
+        email: newUser.email 
+      }, 
+      process.env.JWT_SECRET, 
+      { expiresIn: '1h' }
+    );
 
-    res.status(201).json({ message: 'User registered successfully', token, user: { id: newUser._id, name, email } });
+    res.status(201).json({
+      message: 'User registered successfully',
+      token,
+      user: {
+        id: newUser._id,
+        name: newUser.name,
+        email: newUser.email
+      }
+    });
   } catch (error) {
-    console.error('Registration error:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('Signup error:', error);
+    res.status(500).json({ message: 'Server error during registration' });
   }
 });
 
 // Login route
-app.post('/api/login', async (req, res) => {
+app.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
+  // Validation
   if (!email || !password) {
-    return res.status(400).json({ message: 'All fields are required' });
+    return res.status(400).json({ message: 'Email and password are required' });
   }
 
   try {
-    const user = await User.findOne({ email });
-    if (!user || !(await bcrypt.compare(password, user.password))) {
-      return res.status(400).json({ message: 'Invalid credentials' });
+    // Find user
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) {
+      return res.status(401).json({ message: 'Invalid email or password' });
     }
 
-    const token = jwt.sign({ userId: user._id, name: user.name }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    // Verify password
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: 'Invalid email or password' });
+    }
 
-    res.json({ token, user: { id: user._id, name: user.name, email } });
+    // Generate JWT token
+    const token = jwt.sign(
+      { 
+        userId: user._id, 
+        name: user.name,
+        email: user.email 
+      }, 
+      process.env.JWT_SECRET, 
+      { expiresIn: '1h' }
+    );
+
+    res.status(200).json({
+      message: 'Login successful',
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email
+      }
+    });
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Server error during login' });
   }
 });
 

@@ -66,7 +66,7 @@ const Navbar = () => {
               <div className="flex items-center space-x-4">
                 <button
                   onClick={() => setShowAuthModal(true)}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-300 ${
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-all cursor-pointer duration-300 ${
                     isScrolled
                       ? 'bg-indigo-600 text-white hover:bg-indigo-700'
                       : 'bg-white text-indigo-600 hover:bg-indigo-50'
