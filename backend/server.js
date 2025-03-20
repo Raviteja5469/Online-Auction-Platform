@@ -7,7 +7,7 @@ const dotenv = require('dotenv');
 const cors = require('cors');
 const multer = require('multer');
 const path = require('path');
-const colors = require('colors')
+const colors = require('colors');
 
 // Initialize dotenv
 dotenv.config();
@@ -16,15 +16,17 @@ dotenv.config();
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: "*", // Allow all origins
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
+}));  
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads'))); // Serve uploaded images
 
 // MongoDB connection
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
+mongoose.connect(process.env.MONGO_URI)
 .then(() => console.log(colors.green('MongoDB connected')))
 .catch(err => console.log('MongoDB connection error:', err));
 
@@ -55,6 +57,24 @@ const verifyToken = async (req, res, next) => {
   } catch (error) {
     res.status(401).json({ message: 'Token is not valid' });
   }
+};
+
+
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({ error: "Unauthorized: No token provided" });
+  }
+
+  const token = authHeader.split(" ")[1];
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(403).json({ error: "Invalid token" });
+    }
+    req.user = decoded; // Add user payload to the request
+    next();
+  });
 };
 
 app.post('/signup', async (req, res) => {
@@ -171,11 +191,14 @@ app.post('/login', async (req, res) => {
 // Auction Schema
 const AuctionSchema = new mongoose.Schema({
   itemName: { type: String, required: true },
+  sellerName: {type: String, required: true},
+  sellerEmail: {type: String, required: true},
+  category: {type: String, required: true},
   description: { type: String, required: true },
   startingBid: { type: Number, required: true },
+  raisedAmount: { type: Number, default: 0 },
   endTime: { type: Date, required: true },
-  imageUrl: { type: String },
-  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  images: [],
   createdAt: { type: Date, default: Date.now }
 });
 
@@ -193,31 +216,60 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-// Route to Post an Auction
-app.post('/api/auctions', verifyToken, upload.single('image'), async (req, res) => {
+app.use("/uploads", express.static("uploads"));
+
+app.post("/upload", upload.array("documents", 5), (req, res) => {
   try {
-    const { itemName, description, startingBid, endTime } = req.body;
-    if (!itemName || !description || !startingBid || !endTime) {
-      return res.status(400).json({ message: 'All fields are required' });
-    }
-
-    const newAuction = new Auction({
-      itemName,
-      description,
-      startingBid,
-      endTime,
-      imageUrl: req.file ? `/uploads/${req.file.filename}` : null,
-      user: req.user.userId
+    // console.log("Uploaded filenames:", req.files.map(file => file.filename));
+    const fileUrls = req.files.map(file => `http://localhost:5000/uploads/${file.filename}`);    
+    res.status(200).json({
+      success: 1,
+      fileUrls,
     });
-
-    await newAuction.save();
-    res.status(201).json({ message: 'Auction created successfully', auction: newAuction });
-  } catch (error) {
-    console.error('Auction post error:', error);
-    res.status(500).json({ message: 'Server error' });
+   } catch (error) {
+    console.error("Upload error:", error);
+    res.status(500).json({ success: 0, message: "Image upload failed" });
   }
 });
 
+// Route to Post an Auction
+
+app.post('/postAuction', authenticateToken, upload.array("documents", 5), async (req, res) => {
+  try {
+    const { itemName, sellerName, sellerEmail, category, description, startingBid, endTime, images } = req.body;
+
+    // Check if the user exists
+    const user = await User.findOne({ email: sellerEmail });
+    if (!user) {
+      return res.status(401).json({ success: 0, message: "Please login to post an auction" });
+    }
+
+    // Create a new auction
+    const auction = new Auction({
+      itemName,
+      sellerName,
+      sellerEmail,
+      category,
+      description,
+      startingBid,
+      endTime,
+      images
+    });
+
+    console.log(auction)
+
+    await auction.save();
+
+    res.status(201).json({ success: 1, message: "Auction posted successfully", auction });
+  } catch (error) {
+    console.error("Post auction error:", error);
+    res.status(500).json({ success: 0, message: "Server error while posting auction" });
+  }
+});
+
+
+
+// ============================================================================================
 // Route to Fetch All Auctions
 app.get('/api/auctions', async (req, res) => {
   try {
