@@ -72,8 +72,8 @@ const PostAuction = () => {
     try {
       const token = localStorage.getItem("token");
       const imageUrls = await uploadImages(formData.images);
-      const formDataToSend = { ...formData, documents: imageUrls };
-
+      const formDataToSend = { ...formData, images: imageUrls };
+      
       console.log("Data sending", formDataToSend);
       // Simulate API call to backend
       const response = await axios.post('http://localhost:5000/postAuction', formDataToSend,  {

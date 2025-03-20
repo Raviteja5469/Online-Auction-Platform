@@ -1,17 +1,21 @@
-import React from 'react'
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 
 const LiveAuctions = () => {
-  const auctions = [
+  const [auctions, setAuctions] = useState([]);
+
+  const auctis = [
     {
       id: 1,
       title: "Vintage Rolex Submariner",
       category: "Watches",
       currentBid: 15000,
       timeLeft: "2d 5h",
-      imageUrl: "https://images.pexels.com/photos/190819/pexels-photo-190819.jpeg?auto=compress&cs=tinysrgb&w=600", // Replace with actual image URL
+      imageUrl:
+        "https://images.pexels.com/photos/190819/pexels-photo-190819.jpeg?auto=compress&cs=tinysrgb&w=600", // Replace with actual image URL
       bids: 23,
       watchers: 156,
-      condition: "Excellent"
+      condition: "Excellent",
     },
     {
       id: 2,
@@ -22,10 +26,26 @@ const LiveAuctions = () => {
       imageUrl: "https://example.com/car.jpg",
       bids: 15,
       watchers: 234,
-      condition: "Good"
+      condition: "Good",
     },
     // Add more auction items as needed
   ];
+
+  const auction = async () => {
+    try {
+      const response = await axios.get(
+        "http://localhost:5000/fetchliveauctions"
+      );
+      setAuctions(response.data);
+      console.log(response.data);
+    } catch (error) {
+      console.error("Error fetching fundraisers:", error);
+    }
+  };
+
+  useEffect(() => {
+    auction();
+  }, []);
 
   return (
     <section className="bg-gray-50 py-16">
@@ -42,102 +62,74 @@ const LiveAuctions = () => {
           </p>
         </div>
 
-        {/* Filter and Sort Options */}
-        <div className="flex flex-col sm:flex-row justify-between items-center mb-8">
-          <div className="flex space-x-4 mb-4 sm:mb-0">
-            <select className="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-              <option>All Categories</option>
-              <option>Watches</option>
-              <option>Classic Cars</option>
-              <option>Art</option>
-              <option>Collectibles</option>
-            </select>
-            <select className="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-              <option>Price: Low to High</option>
-              <option>Price: High to Low</option>
-              <option>Ending Soon</option>
-              <option>Most Bids</option>
-            </select>
-          </div>
-          <div className="relative">
-            <input
-              type="search"
-              placeholder="Search auctions..."
-              className="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 pl-10"
-            />
-            <svg
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
-          </div>
-        </div>
-
         {/* Auctions Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {auctions.map((auction) => (
             <div
               key={auction.id}
-              className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300"
+              className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 border border-gray-200"
             >
               {/* Image Container */}
-              <div className="relative h-48 overflow-hidden">
+              <div className="relative h-52 overflow-hidden">
                 <img
-                  src={auction.imageUrl}
-                  alt={auction.title}
+                  src={auction.images[0]}
+                  alt={auction.itemName}
                   className="w-full h-full object-cover"
                 />
-                <div className="absolute top-0 right-0 bg-indigo-600 text-white px-3 py-1 rounded-bl-lg">
-                  {auction.timeLeft}
+                <div className="absolute top-0 right-0 bg-indigo-600 text-white px-3 py-1 rounded-bl-lg text-sm font-semibold">
+                  Ends: {new Date(auction.endTime).toLocaleDateString()}
                 </div>
               </div>
 
               {/* Content */}
               <div className="p-6">
-                <div className="flex justify-between items-start mb-2">
+                {/* Item Name & Category */}
+                <div className="flex justify-between items-start mb-3">
                   <h3 className="text-lg font-semibold text-gray-900">
-                    {auction.title}
+                    {auction.itemName}
                   </h3>
-                  <span className="text-sm font-medium text-indigo-600">
+                  <span className="text-sm font-medium text-indigo-600 bg-indigo-100 px-2 py-1 rounded">
                     {auction.category}
                   </span>
                 </div>
 
+                {/* Price & Raised Amount */}
                 <div className="flex justify-between items-center mb-4">
                   <div>
                     <p className="text-sm text-gray-500">Current Bid</p>
                     <p className="text-xl font-bold text-gray-900">
-                      ${auction.currentBid.toLocaleString()}
+                      ${auction.startingBid}
                     </p>
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm text-gray-500">Condition</p>
-                    <p className="text-sm font-medium text-gray-900">
-                      {auction.condition}
+                  <div>
+                    <p className="text-sm text-gray-500">Raised Amount</p>
+                    <p className="text-lg font-semibold text-green-600">
+                      ${auction.raisedAmount || 0}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex justify-between items-center text-sm text-gray-500 mb-4">
-                  <span>{auction.bids} bids</span>
-                  <span>{auction.watchers} watching</span>
+                {/* Seller Information */}
+                <div className="border-t pt-3 mb-4">
+                  <p className="text-sm text-gray-600">
+                    <span className="font-medium text-gray-900">Seller:</span>{" "}
+                    {auction.sellerName}
+                  </p>
+                  <p className="text-sm text-gray-500 truncate">
+                    <span className="font-medium text-gray-900">Email:</span>{" "}
+                    {auction.sellerEmail}
+                  </p>
                 </div>
 
                 {/* Action Buttons */}
                 <div className="flex space-x-3">
-                  <button   onClick={() => window.location.href = '/PlaceBiding'}
-                  className="flex-1 bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors duration-300">
+                  <button
+                    onClick={() => (window.location.href = "/PlaceBiding")}
+                    className="flex-1 bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition duration-300 font-medium"
+                  >
                     Place Bid
                   </button>
-                  <button className="flex-none px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors duration-300">
+                  <button className="flex-none px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition duration-300">
                     <svg
                       className="h-5 w-5 text-gray-400"
                       fill="none"
@@ -161,7 +153,7 @@ const LiveAuctions = () => {
         {/* View More Button */}
         <div className="text-center mt-12">
           <button
-            onClick={() => window.location.href = '/on-going-Auctions'}
+            onClick={() => (window.location.href = "/on-going-Auctions")}
             className="inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 md:text-lg md:px-10"
           >
             View All Auctions
@@ -183,6 +175,6 @@ const LiveAuctions = () => {
       </div>
     </section>
   );
-}
+};
 
-export default LiveAuctions
+export default LiveAuctions;

@@ -271,15 +271,16 @@ app.post('/postAuction', authenticateToken, upload.array("documents", 5), async 
 
 // ============================================================================================
 // Route to Fetch All Auctions
-app.get('/api/auctions', async (req, res) => {
+app.get('/fetchliveauctions', async (req, res) => {
   try {
-    const auctions = await Auction.find().populate('user', 'name email');
-    res.json(auctions);
+    const auctions = await Auction.find({}).sort({ createdAt: -1 }).limit(5);
+    res.status(201).json(auctions);
   } catch (error) {
     console.error('Fetch auctions error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
+
 
 // Route to Get a Single Auction
 app.get('/api/auctions/:id', async (req, res) => {
