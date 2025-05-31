@@ -37,7 +37,7 @@ const App = () => {
           <Route path="/post-auction" element={<PostingAuction />} />
           <Route path="/LiveAuctionspage2" element={<LiveAuctions2page />} />
           <Route path="/On-going-Auctions" element={<MainAuctionpage />} />
-          <Route path="/PlaceBiding" element={<PlaceBidPage />} />
+          <Route path="/place-bid/:auctionId" element={<PlaceBidPage />} />
           <Route path="/Dashboard" element={<DashboardPage />} />
           <Route path="*" element={<NotFound />} />
           

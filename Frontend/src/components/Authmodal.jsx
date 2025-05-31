@@ -82,6 +82,14 @@ const AuthModal = ({ onClose }) => {
       );
 
       localStorage.setItem("token", response.data.token);
+      // Fetch dashboard data after signup
+      const dashboardResponse = await axios.get("http://localhost:5000/api/user/dashboard", {
+        headers: {
+          "Authorization": `Bearer ${response.data.token}`,
+          "Content-Type": "application/json",
+        },
+      });
+      localStorage.setItem("dashboardData", JSON.stringify(dashboardResponse.data));
       setIsLoading(false);
       onClose();
       return true;

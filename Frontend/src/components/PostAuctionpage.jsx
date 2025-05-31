@@ -17,6 +17,7 @@ const PostAuction = () => {
 
   const [previewImages, setPreviewImages] = useState([]);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(''); // Added for error display
   const navigate = useNavigate();
 
   const categories = [
@@ -26,10 +27,14 @@ const PostAuction = () => {
 
   const { getRootProps, getInputProps } = useDropzone({
     accept: {
-      'image/*': ['.jpeg', '.jpg', '.png']
+      'image/jpeg': ['.jpg', '.jpeg'],
+      'image/png': ['.png'],
+      'image/gif': ['.gif']
     },
     maxFiles: 5,
+    maxSize: 10 * 1024 * 1024, // 10MB
     onDrop: acceptedFiles => {
+      console.log('Accepted files:', acceptedFiles); // Debug log
       setPreviewImages([...previewImages, ...acceptedFiles.map(file =>
         Object.assign(file, { preview: URL.createObjectURL(file) })
       )]);
@@ -37,61 +42,98 @@ const PostAuction = () => {
         ...prev,
         images: [...prev.images, ...acceptedFiles]
       }));
+    },
+    onDropRejected: (rejectedFiles) => {
+      console.log('Rejected files:', rejectedFiles); // Debug log
+      const errors = rejectedFiles.map(file => {
+        if (file.errors[0].code === 'file-too-large') {
+          return 'File is too large. Maximum size is 10MB.';
+        }
+        if (file.errors[0].code === 'file-invalid-type') {
+          return 'Invalid file type. Only JPG, PNG, and GIF files are allowed.';
+        }
+        return file.errors[0].message;
+      });
+      setErrorMessage(errors.join('\n'));
     }
   });
 
   const uploadImages = async (files) => {
     try {
       const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("No token found. Please log in.");
+      }
+      
+      console.log('Files to upload:', files); // Debug log
+      
       const formdata = new FormData();
-      files.forEach((file) => formdata.append("documents", file)); // Append all images
+      files.forEach((file) => {
+        console.log('Adding file to FormData:', file.name, file.type); // Debug log
+        formdata.append("documents", file);
+      });
 
-      // Upload images to backend
       const response = await axios.post(
         "http://localhost:5000/upload",
         formdata,
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data", // Correct content-type for file uploads
+            "Content-Type": "multipart/form-data",
           },
         }
       );
 
+      console.log('Upload response:', response.data); // Debug log
+
       if (response.status !== 200) throw new Error("Image upload failed");
-      return response.data.fileUrls; // Return list of image URLs
+      return response.data.fileUrls;
     } catch (error) {
       console.error("Image upload error:", error);
+      setErrorMessage(error.response?.data?.message || error.message || "Failed to upload images");
       throw error;
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+    setErrorMessage(''); // Clear previous errors
+
     try {
       const token = localStorage.getItem("token");
-      const imageUrls = await uploadImages(formData.images);
-      const formDataToSend = { ...formData, documents: imageUrls };
+      if (!token) {
+        throw new Error("No token found. Please log in.");
+      }
 
-      console.log("Data sending", formDataToSend);
-      // Simulate API call to backend
-      const response = await axios.post('http://localhost:5000/postAuction', formDataToSend,  {
+      // First upload the images
+      const imageUrls = await uploadImages(formData.images);
+      
+      // Then create the auction with the image URLs
+      const formDataToSend = {
+        ...formData,
+        documents: imageUrls // Send the image URLs in the documents field
+      };
+
+      console.log("Data sending:", formDataToSend);
+      console.log("Token:", token);
+
+      const response = await axios.post('http://localhost:5000/postAuction', formDataToSend, {
         headers: {
           Authorization: `Bearer ${token}`,
-          'Content-Type': 'Application/json',
-          },
+          'Content-Type': 'application/json',
+        },
       });
 
-      if (response.ok) {
+      if (response.status === 201) {
         setShowSuccess(true);
         setTimeout(() => {
           setShowSuccess(false);
-          navigate('/'); // Redirect to home page
+          navigate('/');
         }, 2000);
       }
     } catch (error) {
-      console.error('Error submitting form:', error);
+      console.error('Error submitting form:', error.response?.data || error.message);
+      setErrorMessage(error.response?.data?.message || error.message || 'Failed to post auction. Please try again.');
     }
   };
 
@@ -106,6 +148,12 @@ const PostAuction = () => {
             List your item with these simple steps
           </p>
         </div>
+
+        {errorMessage && (
+          <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+            <p>{errorMessage}</p>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-6 animate-fade-in">
           <div className="bg-white rounded-xl shadow-lg p-6 transform transition-all hover:shadow-2xl hover:scale-105">
@@ -251,7 +299,6 @@ const PostAuction = () => {
                         }));
                       }}
                     >
-                      ×
                     </button>
                   </div>
                 ))}

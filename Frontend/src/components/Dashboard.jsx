@@ -1,71 +1,105 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, PieChart, Pie, Cell } from 'recharts';
+import { getDashboardData } from '../services/api';
+import axios from 'axios';
+
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 
 const Dashboard = () => {
-  // User Data
-  const userData = {
-    personalInfo: {
-      name: "John Doe",
-      email: "john.doe@example.com",
-      joined: "Jan 2024",
-      avatar: "https://randomuser.me/api/portraits/men/1.jpg",
-      verificationStatus: "Verified",
-      location: "New York, USA"
-    },
-    auctionStats: {
-      totalBidsPlaced: 67,
-      auctionsWon: 12,
-      activeAuctions: 5,
-      totalSpent: "\$45,320"
-    },
-    recentActivity: [
-      {
-        id: 1,
-        item: "Vintage Rolex Submariner",
-        action: "Placed bid",
-        amount: "\$15,500",
-        time: "2 hours ago",
-        status: "winning"
-      },
-      {
-        id: 2,
-        item: "Art Deco Painting",
-        action: "Outbid",
-        amount: "$12,300",
-        time: "5 hours ago",
-        status: "outbid"
-      }
-    ]
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [userProfile, setUserProfile] = useState(null);
+  const [auctionStats, setAuctionStats] = useState(null);
+  const [recentActivity, setRecentActivity] = useState([]);
+  const [revenueData, setRevenueData] = useState([]);
+  const [categoryData, setCategoryData] = useState([]);
+  const [recentAuctions, setRecentAuctions] = useState([]);
+  const [timeRange, setTimeRange] = useState('weekly');
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editFormData, setEditFormData] = useState({ name: '', email: '', location: '' });
+
+  useEffect(() => {
+    setLoading(true);
+    const storedData = localStorage.getItem("dashboardData");
+    if (storedData) {
+      const data = JSON.parse(storedData);
+      setUserProfile(data.userProfile);
+      setAuctionStats(data.auctionStats);
+      setRecentActivity(data.recentActivity);
+      setRevenueData(data.revenueData);
+      setCategoryData(data.categoryData);
+      setRecentAuctions(data.recentAuctions);
+      setLoading(false);
+    } else {
+      getDashboardData()
+        .then(data => {
+          setUserProfile(data.userProfile);
+          setAuctionStats(data.auctionStats);
+          setRecentActivity(data.recentActivity);
+          setRevenueData(data.revenueData);
+          setCategoryData(data.categoryData);
+          setRecentAuctions(data.recentAuctions);
+          setLoading(false);
+        })
+        .catch(err => {
+          setError(err.message);
+          setLoading(false);
+        });
+    }
+  }, []);
+
+  const handleEditProfile = () => {
+    setEditFormData({ 
+      name: userProfile.name, 
+      email: userProfile.email,
+      location: userProfile.location 
+    });
+    setIsEditModalOpen(true);
   };
 
-  // Your existing data constants
-  const revenueData = [
-    { month: 'Jan', revenue: 45000 },
-    { month: 'Feb', revenue: 52000 },
-    { month: 'Mar', revenue: 48000 },
-    { month: 'Apr', revenue: 61000 },
-    { month: 'May', revenue: 55000 },
-    { month: 'Jun', revenue: 67000 },
-  ];
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.put(
+        "http://localhost:5000/api/user/profile",
+        editFormData,
+        {
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      
+      // Update the userProfile state with the new data
+      setUserProfile(response.data.user);
+      setIsEditModalOpen(false);
 
-  const categoryData = [
-    { name: 'Watches', value: 35 },
-    { name: 'Art', value: 25 },
-    { name: 'Cars', value: 20 },
-    { name: 'Jewelry', value: 15 },
-    { name: 'Other', value: 5 },
-  ];
+      // Refresh dashboard data
+      const dashboardResponse = await axios.get("http://localhost:5000/api/user/dashboard", {
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+      
+      // Update localStorage and all states with fresh data
+      localStorage.setItem("dashboardData", JSON.stringify(dashboardResponse.data));
+      setUserProfile(dashboardResponse.data.userProfile);
+      setAuctionStats(dashboardResponse.data.auctionStats);
+      setRecentActivity(dashboardResponse.data.recentActivity);
+      setRevenueData(dashboardResponse.data.revenueData);
+      setCategoryData(dashboardResponse.data.categoryData);
+      setRecentAuctions(dashboardResponse.data.recentAuctions);
+    } catch (error) {
+      setError(error.response?.data?.message || 'Failed to update profile');
+    }
+  };
 
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
-
-  const stats = [
-    { title: 'Total Auctions', value: '1,234', change: '+12%', color: 'text-blue-600' },
-    { title: 'Active Bidders', value: '856', change: '+8%', color: 'text-green-600' },
-    { title: 'Total Revenue', value: '$328,456', change: '+15%', color: 'text-purple-600' },
-    { title: 'Success Rate', value: '94%', change: '+3%', color: 'text-yellow-600' },
-  ];
-
-  const [timeRange, setTimeRange] = useState('weekly');
+  if (loading) return <div className="p-8 text-center">Loading dashboard...</div>;
+  if (error) return <div className="p-8 text-center text-red-500">{error}</div>;
+  if (!userProfile || !auctionStats) return null;
 
   return (
     <div className="min-h-screen bg-gray-50 pt-30 pb-16">
@@ -75,26 +109,29 @@ const Dashboard = () => {
           <div className="bg-gradient-to-r from-indigo-500 to-purple-600 px-6 py-4">
             <div className="flex items-center">
               <img 
-                src={userData.personalInfo.avatar} 
+                src={userProfile.avatar} 
                 alt="Profile"
                 className="h-20 w-20 rounded-full border-4 border-white shadow-md" 
               />
               <div className="ml-6">
-                <h2 className="text-2xl font-bold text-white">{userData.personalInfo.name}</h2>
+                <h2 className="text-2xl font-bold text-white">{userProfile.name}</h2>
                 <div className="flex items-center mt-1">
                   <span className="bg-white/20 text-white px-3 py-1 rounded-full text-sm">
-                    {userData.personalInfo.location}
+                    {userProfile.location}
                   </span>
                   <span className="ml-3 text-white/80 text-sm">
-                    Member since {userData.personalInfo.joined}
+                    Member since {new Date(userProfile.joined).toLocaleDateString()}
                   </span>
                 </div>
               </div>
               <div className="ml-auto flex items-center space-x-4">
                 <span className="bg-green-500 text-white px-4 py-2 rounded-full text-sm font-medium">
-                  {userData.personalInfo.verificationStatus}
+                  {userProfile.verificationStatus}
                 </span>
-                <button className="bg-white/10 text-white px-4 py-2 rounded-lg hover:bg-white/20 transition-colors">
+                <button 
+                  onClick={handleEditProfile}
+                  className="bg-white/10 text-white px-4 py-2 rounded-lg hover:bg-white/20 transition-colors"
+                >
                   Edit Profile
                 </button>
               </div>
@@ -104,26 +141,26 @@ const Dashboard = () => {
           <div className="grid grid-cols-4 gap-4 p-6">
             <div className="bg-gray-50 p-4 rounded-lg">
               <p className="text-sm text-gray-500">Total Bids</p>
-              <p className="text-2xl font-bold text-gray-900">{userData.auctionStats.totalBidsPlaced}</p>
+              <p className="text-2xl font-bold text-gray-900">{auctionStats.totalBidsPlaced}</p>
             </div>
             <div className="bg-gray-50 p-4 rounded-lg">
               <p className="text-sm text-gray-500">Auctions Won</p>
-              <p className="text-2xl font-bold text-gray-900">{userData.auctionStats.auctionsWon}</p>
+              <p className="text-2xl font-bold text-gray-900">{auctionStats.auctionsWon}</p>
             </div>
             <div className="bg-gray-50 p-4 rounded-lg">
               <p className="text-sm text-gray-500">Active Auctions</p>
-              <p className="text-2xl font-bold text-gray-900">{userData.auctionStats.activeAuctions}</p>
+              <p className="text-2xl font-bold text-gray-900">{auctionStats.activeAuctions}</p>
             </div>
             <div className="bg-gray-50 p-4 rounded-lg">
               <p className="text-sm text-gray-500">Total Spent</p>
-              <p className="text-2xl font-bold text-gray-900">{userData.auctionStats.totalSpent}</p>
+              <p className="text-2xl font-bold text-gray-900">{auctionStats.totalSpent}</p>
             </div>
           </div>
 
           <div className="px-6 pb-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
             <div className="space-y-4">
-              {userData.recentActivity.map((activity) => (
+              {recentActivity.map((activity) => (
                 <div 
                   key={activity.id} 
                   className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
@@ -146,7 +183,6 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Your existing dashboard content */}
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
         <h1 className="text-2xl font-bold text-gray-900">Auction Dashboard</h1>
@@ -165,24 +201,6 @@ const Dashboard = () => {
               Export Report
             </button>
           </div>
-        </div>
-
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {stats.map((stat) => (
-            <div key={stat.title} className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-sm font-medium text-gray-500">{stat.title}</h3>
-              <div className="flex items-baseline mt-4">
-                <p className="text-2xl font-semibold text-gray-900">{stat.value}</p>
-                <p className={`ml-2 flex items-baseline text-sm font-semibold ${stat.color}`}>
-                  {stat.change}
-                  <svg className="w-4 h-4 ml-0.5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M5.293 7.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L6.707 7.707a1 1 0 01-1.414 0z" />
-                  </svg>
-                </p>
-              </div>
-            </div>
-          ))}
         </div>
 
         {/* Charts Grid */}
@@ -241,24 +259,94 @@ const Dashboard = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {/* Add your auction items here */}
-                <tr>
-                  <td className="px-6 py-4 whitespace-nowrap">Vintage Watch</td>
-                  <td className="px-6 py-4 whitespace-nowrap">$15,000</td>
-                  <td className="px-6 py-4 whitespace-nowrap">23</td>
-                  <td className="px-6 py-4 whitespace-nowrap">2d 5h</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                      Active
-                    </span>
-                  </td>
-                </tr>
-                {/* Add more rows as needed */}
+                {recentAuctions.map((auction, idx) => (
+                  <tr key={idx}>
+                    <td className="px-6 py-4 whitespace-nowrap">{auction.item}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{auction.currentBid}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{auction.bids}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{auction.timeLeft}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                        {auction.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
             </div>
         </div>
       </div>
+
+      {/* Edit Profile Modal */}
+      {isEditModalOpen && (
+        <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 backdrop-blur-sm">
+          <div className="bg-white rounded-xl p-8 max-w-md w-full mx-4 shadow-2xl transform transition-all duration-300">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Edit Profile</h2>
+            <form onSubmit={handleEditSubmit} className="space-y-6">
+              <div>
+                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  id="name"
+                  name="name"
+                  value={editFormData.name}
+                  onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
+                  placeholder="Enter your full name"
+                  className="w-full px-4 py-3 rounded-md border border-gray-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={editFormData.email}
+                  onChange={(e) => setEditFormData({ ...editFormData, email: e.target.value })}
+                  placeholder="Enter your email"
+                  className="w-full px-4 py-3 rounded-md border border-gray-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-1">
+                  Location
+                </label>
+                <input
+                  type="text"
+                  id="location"
+                  name="location"
+                  value={editFormData.location}
+                  onChange={(e) => setEditFormData({ ...editFormData, location: e.target.value })}
+                  placeholder="Enter your location"
+                  className="w-full px-4 py-3 rounded-md border border-gray-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
+                />
+              </div>
+              <div className="flex justify-end space-x-4">
+                <button
+                  type="button"
+                  onClick={() => setIsEditModalOpen(false)}
+                  className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

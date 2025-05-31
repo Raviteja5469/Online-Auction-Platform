@@ -1,33 +1,114 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const PlaceBid = () => {
+  const { auctionId } = useParams();
+  const navigate = useNavigate();
   const [bidAmount, setBidAmount] = useState('');
   const [autoMaxBid, setAutoMaxBid] = useState('');
   const [enableAutoBid, setEnableAutoBid] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('credit_card');
+  const [auctionItem, setAuctionItem] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [bidError, setBidError] = useState(null);
+  const [bidSuccess, setBidSuccess] = useState(false);
 
-  // Example auction details - in real app, this would come from props or API
-  const auctionItem = {
-    title: "Vintage Rolex Submariner",
-    currentBid: 15000,
-    minBidIncrement: 500,
-    timeLeft: "2d 5h",
-    imageUrl: "https://images.pexels.com/photos/190819/pexels-photo-190819.jpeg?auto=compress&cs=tinysrgb&w=600", // Your image base64 string
-    condition: "Excellent",
-    bids: 23,
-    watchers: 156
-  };
+  useEffect(() => {
+    const fetchAuctionDetails = async () => {
+      try {
+        console.log('Fetching auction details for ID:', auctionId);
+        const response = await axios.get(`http://localhost:5000/api/auctions/${auctionId}`);
+        console.log('Auction details response:', response.data);
+        setAuctionItem(response.data);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching auction details:', error.response || error);
+        setError(error.response?.data?.message || 'Failed to load auction details. Please try again later.');
+        setLoading(false);
+      }
+    };
 
-  const handleBidSubmit = (e) => {
+    if (auctionId) {
+      fetchAuctionDetails();
+    } else {
+      setError('No auction ID provided');
+      setLoading(false);
+    }
+  }, [auctionId]);
+
+  const handleBidSubmit = async (e) => {
     e.preventDefault();
-    // Implement bid submission logic here
-    console.log({
-      bidAmount,
-      enableAutoBid,
-      autoMaxBid,
-      paymentMethod
-    });
+    setBidError(null);
+    setBidSuccess(false);
+
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        navigate('/login');
+        return;
+      }
+
+      const response = await axios.post(
+        `http://localhost:5000/api/auctions/${auctionId}/bid`,
+        {
+          amount: Number(bidAmount),
+          isAutoBid: enableAutoBid,
+          maxAutoBidAmount: enableAutoBid ? Number(autoMaxBid) : undefined
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      setBidSuccess(true);
+      // Update auction details with new bid
+      setAuctionItem(prev => ({
+        ...prev,
+        currentBid: response.data.auction.currentBid,
+        timeLeft: response.data.auction.timeLeft
+      }));
+      setBidAmount('');
+      setAutoMaxBid('');
+    } catch (error) {
+      setBidError(error.response?.data?.message || 'Failed to place bid. Please try again.');
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-12 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading auction details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-12 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600">{error}</p>
+          <button
+            onClick={() => navigate('/auctions')}
+            className="mt-4 bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-indigo-700"
+          >
+            Back to Auctions
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!auctionItem) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
@@ -43,6 +124,18 @@ const PlaceBid = () => {
           </ol>
         </nav>
 
+        {bidSuccess && (
+          <div className="mb-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
+            Bid placed successfully!
+          </div>
+        )}
+
+        {bidError && (
+          <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+            {bidError}
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* Item Details Section */}
           <div className="bg-white rounded-lg shadow-md p-6">
@@ -50,16 +143,16 @@ const PlaceBid = () => {
             
             <div className="aspect-w-16 aspect-h-9 mb-6">
               <img
-                src={auctionItem.imageUrl}
-                alt={auctionItem.title}
+                src={auctionItem.images[0]}
+                alt={auctionItem.itemName}
                 className="rounded-lg object-cover w-full h-64"
               />
             </div>
 
             <div className="space-y-4">
               <div>
-                <h3 className="text-xl font-semibold text-gray-900">{auctionItem.title}</h3>
-                <p className="text-gray-500">Condition: {auctionItem.condition}</p>
+                <h3 className="text-xl font-semibold text-gray-900">{auctionItem.itemName}</h3>
+                <p className="text-gray-500">Category: {auctionItem.category}</p>
               </div>
 
               <div className="flex justify-between border-t border-b border-gray-200 py-4">
@@ -74,8 +167,8 @@ const PlaceBid = () => {
               </div>
 
               <div className="flex justify-between text-sm text-gray-500">
-                <span>{auctionItem.bids} bids</span>
-                <span>{auctionItem.watchers} watching</span>
+                <span>{auctionItem.bids?.length || 0} bids</span>
+                <span>Seller: {auctionItem.sellerName}</span>
               </div>
             </div>
           </div>
