@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "start": "serve -s dist",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -26,6 +27,7 @@
     "react-quill": "^2.0.0",
     "react-router-dom": "^7.3.0",
     "recharts": "^2.15.1",
+    "serve": "^14.2.4",
     "tailwind": "^2.3.1"
   },
   "devDependencies": {
