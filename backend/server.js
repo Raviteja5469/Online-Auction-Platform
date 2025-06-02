@@ -295,7 +295,7 @@ app.post("/upload", upload.array("documents", 5), (req, res) => {
     
     const fileUrls = req.files.map(file => {
       const filename = file.filename;
-      const fileUrl = `https://online-auction-platform-4qje.onrender.com/uploads/${filename}`;
+      const fileUrl = `http://localhost:5000/uploads/${filename}`;
       console.log("Generated file URL:", fileUrl); // Debug log
       return fileUrl;
     });
@@ -424,7 +424,7 @@ app.get('/api/auctions', async (req, res) => {
             console.log('Using data URL:', img); // Debug log
             return img;
           }
-          const imageUrl = `https://online-auction-platform-4qje.onrender.com/uploads/${img}`;
+          const imageUrl = `http://localhost:5000/uploads/${img}`;
           console.log('Created image URL:', imageUrl); // Debug log
           return imageUrl;
         });
@@ -475,7 +475,7 @@ app.get('/api/auctions/:id', async (req, res) => {
       // Ensure all image URLs are absolute
       formattedAuction.images = formattedAuction.images.map(img => {
         if (img.startsWith('http')) return img;
-        return `https://online-auction-platform-4qje.onrender.com/uploads/${img}`;
+        return `http://localhost:5000/uploads/${img}`;
       });
     }
 

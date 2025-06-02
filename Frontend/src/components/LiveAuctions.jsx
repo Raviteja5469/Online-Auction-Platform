@@ -1,11 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom'; // Add this import
 
 const LiveAuctions = () => {
   const [auctions, setAuctions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [imageIndices, setImageIndices] = useState({}); // Track current image index for each auction
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const navigate = useNavigate(); // Add this line
+
+  // Simulate auth check (replace with your actual auth logic)
+  const isLoggedIn = !!localStorage.getItem('userToken');
 
   // Function to calculate time left for an auction
   const calculateTimeLeft = (endTime) => {
@@ -24,7 +30,7 @@ const LiveAuctions = () => {
   useEffect(() => {
     const fetchAuctions = async () => {
       try {
-        const response = await axios.get("https://online-auction-platform-4qje.onrender.com/api/auctions");
+        const response = await axios.get("http://localhost:5000/api/auctions");
         console.log("Raw auction data:", response.data); // Debug log
         
         const formattedAuctions = response.data
@@ -90,6 +96,24 @@ const LiveAuctions = () => {
       ...prev,
       [auctionId]: (prev[auctionId] + 1) % imageCount,
     }));
+  };
+
+  const handleProtectedAction = (action) => {
+    if (!isLoggedIn) {
+      navigate('/login'); // Redirect to login page
+    } else {
+      action();
+    }
+  };
+
+  const handleViewAllAuctions = () => {
+    // Your navigation logic here
+    window.location.href = '/all-auctions';
+  };
+
+  const handlePlaceBid = (auctionId) => {
+    // Your place bid logic here
+    alert(`Placing bid on auction ${auctionId}`);
   };
 
   return (
@@ -269,7 +293,7 @@ const LiveAuctions = () => {
                   {/* Action Buttons */}
                   <div className="flex space-x-3">
                     <button
-                      onClick={() => window.location.href = `/place-bid/${auction.id}`}
+                      onClick={() => handleProtectedAction(() => handlePlaceBid(auction.id))}
                       className="flex-1 bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors duration-300"
                     >
                       Place Bid
@@ -300,7 +324,7 @@ const LiveAuctions = () => {
         {!loading && !error && (
           <div className="text-center mt-12">
             <button
-              onClick={() => window.location.href = '/on-going-Auctions'}
+              onClick={() => handleProtectedAction(handleViewAllAuctions)}
               className="inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 md:text-lg md:px-10"
             >
               View All Auctions
