@@ -25,7 +25,7 @@ const AuctionsPage = () => {
   useEffect(() => {
     const fetchAuctions = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/api/auctions");
+        const response = await axios.get("https://online-auction-platform-4qje.onrender.com/api/auctions");
         console.log("Raw auction data:", response.data); // Debug log
         
         const formattedAuctions = response.data

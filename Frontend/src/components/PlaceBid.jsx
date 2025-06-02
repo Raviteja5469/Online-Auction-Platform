@@ -19,7 +19,7 @@ const PlaceBid = () => {
     const fetchAuctionDetails = async () => {
       try {
         console.log('Fetching auction details for ID:', auctionId);
-        const response = await axios.get(`http://localhost:5000/api/auctions/${auctionId}`);
+        const response = await axios.get(`https://online-auction-platform-4qje.onrender.com/api/auctions/${auctionId}`);
         console.log('Auction details response:', response.data);
         setAuctionItem(response.data);
         setLoading(false);
@@ -51,7 +51,7 @@ const PlaceBid = () => {
       }
 
       const response = await axios.post(
-        `http://localhost:5000/api/auctions/${auctionId}/bid`,
+        `https://online-auction-platform-4qje.onrender.com/api/auctions/${auctionId}/bid`,
         {
           amount: Number(bidAmount),
           isAutoBid: enableAutoBid,
