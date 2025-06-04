@@ -73,13 +73,13 @@ const AuctionsPage = () => {
   );
 
   return (
-    <section className="bg-gradient-to-r from-indigo-600 to-purple-600 py-24">
+    <section className="bg-gray-100 py-24">
       <div className="max-w-7xl mx-auto px-8 sm:px-12 lg:px-16">
         <div className="text-center mb-16">
-          <h2 className="text-lg font-semibold text-white uppercase tracking-wide">
+          <h2 className="text-lg font-semibold text-gray-900 uppercase tracking-wide">
             Live Auctions
           </h2>
-          <p className="mt-2 text-4xl font-extrabold text-white">
+          <p className="mt-2 text-4xl font-extrabold text-gray-900">
             Browse & Place Your Bids
           </p>
         </div>
@@ -93,7 +93,7 @@ const AuctionsPage = () => {
               placeholder="Search auctions..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full pl-10 pr-4 py-3 text-gray-500 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500"
             />
           </div>
         </div>
@@ -128,7 +128,7 @@ const AuctionsPage = () => {
                       e.target.src = auction.images[0]; // Use the first image from the array which should be the base64 placeholder
                     }}
                   />
-                  <div className="absolute top-0 right-0 bg-blue-700 text-white px-4 py-1 rounded-bl-lg flex items-center">
+                  <div className="absolute top-0 right-0 bg-gray-900 text-white px-4 py-1 rounded-bl-lg flex items-center">
                     <FiClock className="mr-1" /> {auction.timeLeft}
                   </div>
                 </div>
@@ -147,7 +147,7 @@ const AuctionsPage = () => {
                   </div>
                   <button
                     onClick={() => window.location.href = `/place-bid/${auction.id}`}
-                    className="mt-6 w-full bg-blue-700 text-white px-6 py-3 rounded-lg text-lg font-medium hover:bg-blue-800 transition-colors duration-300"
+                    className="mt-6 w-full bg-gray-900 text-white px-6 py-3 rounded-lg text-lg font-medium hover:bg-gray-500 transition-colors duration-300"
                   >
                     Place Bid
                   </button>

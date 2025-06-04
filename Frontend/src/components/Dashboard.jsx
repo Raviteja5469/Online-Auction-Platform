@@ -106,7 +106,7 @@ const Dashboard = () => {
       <div className="max-w-7xl mx-auto">
         {/* User Profile Section */}
         <div className="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
-          <div className="bg-gradient-to-r from-indigo-500 to-purple-600 px-6 py-4">
+          <div className="bg-gray-800 px-6 py-4">
             <div className="flex items-center">
               <img 
                 src={userProfile.avatar} 
@@ -197,7 +197,7 @@ const Dashboard = () => {
               <option value="monthly">Monthly</option>
               <option value="yearly">Yearly</option>
             </select>
-            <button className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">
+            <button className="bg-gray-800 text-white px-4 py-2 rounded-md hover:bg-indigo-700">
               Export Report
             </button>
           </div>

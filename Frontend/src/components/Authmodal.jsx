@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
-const AuthModal = ({ onClose }) => {
+const AuthModal = ({ onClose, open }) => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -116,9 +116,11 @@ const AuthModal = ({ onClose }) => {
     }
   };
 
+  if (!open) return null;
+
   return (
     <div
-      className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 backdrop-blur-sm"
+      className="fixed inset-0 bg-blur-sm bg-opacity-50 flex items-center justify-center z-50 backdrop-blur-sm"
       onClick={onClose}
     >
       <div

@@ -83,7 +83,7 @@ const PlaceBid = () => {
     return (
       <div className="min-h-screen bg-gray-50 py-12 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading auction details...</p>
         </div>
       </div>
@@ -97,7 +97,7 @@ const PlaceBid = () => {
           <p className="text-red-600">{error}</p>
           <button
             onClick={() => navigate('/auctions')}
-            className="mt-4 bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-indigo-700"
+            className="mt-4 bg-gray-600 text-white px-6 py-2 rounded-md hover:bg-gray-700"
           >
             Back to Auctions
           </button>
@@ -111,7 +111,7 @@ const PlaceBid = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
+    <div className="min-h-screen bg-gray-50 py-12" style={{ backgroundColor: 'rgb(233 233 233' }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Breadcrumb */}
         <nav className="mb-8">
@@ -162,7 +162,7 @@ const PlaceBid = () => {
                 </div>
                 <div className="text-right">
                   <p className="text-gray-500">Time Left</p>
-                  <p className="text-xl font-semibold text-indigo-600">{auctionItem.timeLeft}</p>
+                  <p className="text-xl font-semibold text-gray-600">{auctionItem.timeLeft}</p>
                 </div>
               </div>
 
@@ -266,7 +266,7 @@ const PlaceBid = () => {
               {/* Submit Button */}
               <button
                 type="submit"
-                className="w-full bg-indigo-600 text-white px-6 py-3 rounded-md hover:bg-indigo-700 transition-colors duration-300"
+                className="w-full bg-gray-900 text-white px-6 py-3 rounded-md hover:bg-gray-600 transition-colors duration-300"
               >
                 Place Bid Now
               </button>
