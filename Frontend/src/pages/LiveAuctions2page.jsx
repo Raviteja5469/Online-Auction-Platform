@@ -15,4 +15,5 @@ const LiveAuctions2page = () => {
   )
 }
 
+
 export default LiveAuctions2page
