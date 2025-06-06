@@ -22,8 +22,8 @@ const LoginPopup = ({ isOpen, onClose }) => {
       : { email, password };
 
     const endpoint = isSignUp
-      ? "http://localhost:5000/api/signup"
-      : "http://localhost:5000/api/signin";
+      ? "https://online-auction-platform-1.onrender.com/api/signup"
+      : "https://online-auction-platform-1.onrender.com/api/signin";
 
     try {
       const response = await axios.post(endpoint, payload);

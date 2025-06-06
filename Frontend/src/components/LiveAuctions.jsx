@@ -37,7 +37,7 @@ const LiveAuctions = ({ openLoginModal }) => {
   useEffect(() => {
     const fetchAuctions = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/api/auctions");
+        const response = await axios.get("https://online-auction-platform-1.onrender.com/api/auctions");
         const formattedAuctions = response.data
           .filter(auction => {
             const now = new Date();

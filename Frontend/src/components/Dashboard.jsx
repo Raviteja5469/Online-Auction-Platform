@@ -62,7 +62,7 @@ const Dashboard = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.put(
-        "http://localhost:5000/api/user/profile",
+        "https://online-auction-platform-1.onrender.com/api/user/profile",
         editFormData,
         {
           headers: {
@@ -77,7 +77,7 @@ const Dashboard = () => {
       setIsEditModalOpen(false);
 
       // Refresh dashboard data
-      const dashboardResponse = await axios.get("http://localhost:5000/api/user/dashboard", {
+      const dashboardResponse = await axios.get("https://online-auction-platform-1.onrender.com/api/user/dashboard", {
         headers: {
           "Authorization": `Bearer ${token}`,
           "Content-Type": "application/json",

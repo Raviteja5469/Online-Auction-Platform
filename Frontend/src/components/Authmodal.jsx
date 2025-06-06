@@ -45,7 +45,7 @@ const AuthModal = ({ onClose, open }) => {
     try {
       setIsLoading(true);
       const response = await axios.post(
-        "http://localhost:5000/login",
+        "http://https://online-auction-platform-1.onrender.com/login",
         // "https://online-auction-platform-4qje.onrender.com/login",
 
         {
@@ -74,7 +74,7 @@ const AuthModal = ({ onClose, open }) => {
     try {
       setIsLoading(true);
       const response = await axios.post(
-        "http://localhost:5000/signup",
+        "https://online-auction-platform-1.onrender.com/signup",
         // "https://online-auction-platform-4qje.onrender.com/signup",
         
         formData,
@@ -87,7 +87,7 @@ const AuthModal = ({ onClose, open }) => {
 
       localStorage.setItem("token", response.data.token);
       // Fetch dashboard data after signup
-      const dashboardResponse = await axios.get("http://localhost:5000/api/user/dashboard", {
+      const dashboardResponse = await axios.get("https://online-auction-platform-1.onrender.com/api/user/dashboard", {
         headers: {
           "Authorization": `Bearer ${response.data.token}`,
           "Content-Type": "application/json",

@@ -1,6 +1,6 @@
 export async function getDashboardData() {
   const token = localStorage.getItem('token');
-  const response = await fetch('http://localhost:5000/api/user/dashboard', {
+  const response = await fetch('https://online-auction-platform-1.onrender.com/api/user/dashboard', {
     headers: {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json',

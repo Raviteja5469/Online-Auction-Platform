@@ -74,7 +74,7 @@ const PostAuction = () => {
       });
 
       const response = await axios.post(
-        "http://localhost:5000/upload",
+        "https://online-auction-platform-1.onrender.com/upload",
         formdata,
         {
           headers: {
@@ -117,7 +117,7 @@ const PostAuction = () => {
       console.log("Data sending:", formDataToSend);
       console.log("Token:", token);
 
-      const response = await axios.post('http://localhost:5000/postAuction', formDataToSend, {
+      const response = await axios.post('https://online-auction-platform-1.onrender.com/postAuction', formDataToSend, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
