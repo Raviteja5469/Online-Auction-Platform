@@ -237,7 +237,7 @@ const PostAuction = () => {
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
               <div>
                 <label className="block text-sm font-medium text-gray-700 transition duration-150 hover:text-blue-500">
-                  Starting Bid (₹) *
+                  Starting Bid ($) *
                 </label>
                 <input
                   type="number"
